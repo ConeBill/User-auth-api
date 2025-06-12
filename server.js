@@ -1,5 +1,6 @@
 // Feito a partir do zero
 import authRoutes from './routes/auth.js';
+import documentationRoutes from './routes/documentation.js';
 
 // Já vem pronto
 import express from 'express';
@@ -9,19 +10,24 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
 dotenv.config();
+const PORT = process.env.PORT || 3000;
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5000';
 
 const app = express();
 app.use(cors({
-  origin: 'http://localhost:5000',
+  origin: CORS_ORIGIN,
   credentials: true
 }));
 app.use(cookieParser());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB conectado'))
-  .catch(err => console.error(err));
+await mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log('DB conected'))
+.catch(err => console.error(err));
 
+app.use('/docs', documentationRoutes);
 app.use('/api/auth', authRoutes);
 
-app.listen(3000, () => console.log('Servidor rodando na porta 3000'));
+app.listen(PORT, () => {
+  console.log(`Servidor ON na porta ${PORT}`);
+});

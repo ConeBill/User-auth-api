@@ -160,19 +160,6 @@ router.post('/refresh', async (req, res) => {
     return res.status(403).json({ error: 'Refresh token inválido' });
   }
 });
-/*router.post('/refresh', (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken)
-    return res.status(401).json({ error: 'Refresh token ausente' });
-  try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    const newAccessToken = generateAccessToken(decoded);
-
-    res.json({ accessToken: newAccessToken });
-  } catch (err) {
-    return res.status(403).json({ error: 'Refresh token inválido' });
-  }
-});*/
 
 // LOGOUT
 router.post('/logout', (req, res) => {

@@ -1,0 +1,179 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "User Auth API",
+    "description": "API para autenticação de usuários — registro, confirmação, login, password reset e perfil.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:{port}",
+      "description": "Servidor local",
+      "variables": { "port": { "default": "3000" } }
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "UserRegister": {
+        "type": "object",
+        "required": ["email","password"],
+        "properties": {
+          "email": { "type":"string","format":"email","example":"user@example.com" },
+          "password": { "type":"string","minLength":6,"example":"senha123" }
+        }
+      },
+      "UserLogin": {
+        "type": "object",
+        "required": ["email","password"],
+        "properties": {
+          "email": { "type":"string","format":"email","example":"user@example.com" },
+          "password": { "type":"string","example":"senha123" }
+        }
+      },
+      "TokenConfirm": {
+        "type": "object",
+        "required": ["token"],
+        "properties": {
+          "token": { "type":"string","example":"abcdef123456" }
+        }
+      },
+      "ForgotPassword": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "email": { "type":"string","format":"email","example":"user@example.com" }
+        }
+      },
+      "ResetPassword": {
+        "type": "object",
+        "required": ["token","newPassword"],
+        "properties": {
+          "token": { "type":"string","example":"654321fedcba" },
+          "newPassword": { "type":"string","minLength":6,"example":"novaSenha123" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type":"string","example":"607f1f77bcf86cd799439011" },
+          "email": { "type":"string","format":"email","example":"user@example.com" },
+          "createdAt": { "type":"string","format":"date-time" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "message": { "type":"string","example":"Descrição do erro" }
+        }
+      }
+    }
+  },
+  "tags": [
+    { "name": "Auth", "description": "Operações de autenticação (registro, login, password reset)" },
+    { "name": "User", "description": "Obter e atualizar dados do usuário autenticado" }
+  ],
+  "security": [
+    { "bearerAuth": [] }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Registrar novo usuário",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserRegister" } } } },
+        "responses": {
+          "201": { "description": "Usuário criado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
+          "400": { "description": "Erro de validação", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/auth/confirm": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Confirmar registro via token/OTP",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TokenConfirm" } } } },
+        "responses": {
+          "200": { "description": "E-mail confirmado" },
+          "400": { "description": "Token inválido/expirado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Fazer login e obter token JWT",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserLogin" } } } },
+        "responses": {
+          "200": {
+            "description": "Login bem-sucedido",
+            "headers": {
+              "Authorization": { "schema": { "type":"string","example":"Bearer <token>" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type":"object",
+                  "properties": {
+                    "token": { "type":"string","example":"<token>" },
+                    "user": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Credenciais inválidas", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Solicitar link/OTP de reset de senha",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ForgotPassword" } } } },
+        "responses": {
+          "200": { "description": "E-mail enviado" },
+          "404": { "description": "Usuário não encontrado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Redefinir senha com token/OTP",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResetPassword" } } } },
+        "responses": {
+          "200": { "description": "Senha atualizada" },
+          "400": { "description": "Token inválido ou dados incorretos", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/user/me": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Obter perfil do usuário autenticado",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Perfil retornado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
+          "401": { "description": "Token ausente/inválido", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "put": {
+        "tags": ["User"],
+        "summary": "Atualizar dados do usuário (email, senha)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type":"object", "properties": { "email": { "type":"string","format":"email" }, "password": { "type":"string","minLength":6 } } } } } },
+        "responses": {
+          "200": { "description": "Dados atualizados", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
+          "400": { "description": "Dados inválidos", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    }
+  }
+}
