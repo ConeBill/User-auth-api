@@ -63,8 +63,15 @@ npm install
 ```
 npm start
 ```
-
 A aplicação estará disponível em: `http://localhost:5000`
+
+## Documentação da API
+
+A API possui documentação interativa disponível nos seguintes endpoints:
+
+- Swagger: `http://localhost:5000/api-docs`
+- Redoc: `http://localhost:5000/docs`
+
 
 ## Endpoints Principais
 
@@ -82,3 +89,4 @@ Algumas rotas requerem o envio do `accessToken` no header `Authorization` e o `r
 
 - O projeto segue uma arquitetura modular, facilitando manutenção e evolução.
 - O refresh token é armazenado em cookie seguro, seguindo boas práticas de segurança.
+- A documentação da API é gerada via Swagger/OpenAPI e servida com Swagger UI e Redoc.
